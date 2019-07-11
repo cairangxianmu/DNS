@@ -83,7 +83,7 @@ def run():
 
     model = get_cnn_model(max_len, volcab_size)
 
-    filename = 'finalized_model.tflearn'
+    filename = 'result/finalized_model.tflearn'
     loaded_model = model.load(filename)
 
     predictions = model.predict(testX)

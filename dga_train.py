@@ -30,8 +30,10 @@ def get_local_data(tag="train"):
                     if subdomain is not None:
                         if "white" in path:
                             white_data.append(subdomain)
-                        elif "black" in path and "pcap" in path:
+                            # print("white",subdomain)
+                        elif "black" in path:
                             black_data.append(subdomain)
+                            # print("black",subdomain)
                         else:
                             pass
                             # print ("pass path:", path)
@@ -126,7 +128,7 @@ def run():
     model = get_cnn_model(max_len, volcab_size)
     model.fit(trainX, trainY, validation_set=(testX, testY), show_metric=True, batch_size=64)
 
-    filename = 'finalized_model.tflearn'
+    filename = 'result/finalized_model.tflearn'
     model.save(filename)
 
     model.load(filename)
