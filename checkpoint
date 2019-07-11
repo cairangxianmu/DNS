@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/crxm/DNS/DNS/finalized_model.tflearn"
+all_model_checkpoint_paths: "/home/crxm/DNS/DNS/finalized_model.tflearn"
