@@ -19,19 +19,17 @@ import pickle
 
 def get_local_data(tag="train"):
     data_path = "DGA_Data"
-    black_data, cdn_data, white_data = [], [], []
+    black_data,white_data = [], []
     for dir_path in os.listdir(data_path):
-        if ("black", "cdn", "white") and tag in dir_path:
+        if ("black", "white") and tag in dir_path:
             path = data_path +"/" + dir_path
             print(path)
             with open(path) as f:
                 for line in f:
-                    subdomain = line
+                    subdomain = line.replace('\n','').replace('\t','').rstrip('.')
                     if subdomain is not None:
                         if "white" in path:
                             white_data.append(subdomain)
-                        elif "cdn" in path:
-                            cdn_data.append(subdomain)
                         elif "black" in path and "pcap" in path:
                             black_data.append(subdomain)
                         else:
@@ -39,22 +37,21 @@ def get_local_data(tag="train"):
                             # print ("pass path:", path)
                     # else:
                     #    print ("unknown line:", line, " in file:", path)
-    return black_data, cdn_data, white_data
+    return black_data, white_data
 
 
 class LABEL(object):
     white = 0
-    cdn = 1
-    black = 2
+    black = 1
 
 
 def get_data():
-    black_x, cdn_x, white_x = get_local_data()
-    black_y, cdn_y, white_y = [LABEL.black] * len(black_x), [LABEL.cdn] * len(cdn_x), [LABEL.white] * len(white_x)
+    black_x, white_x = get_local_data()
+    black_y, white_y = [LABEL.black] * len(black_x),[LABEL.white] * len(white_x)
 
-    X = black_x + cdn_x + white_x
-    labels = black_y + cdn_y + white_y
-    print(X)
+    X = black_x + white_x
+    labels = black_y + white_y
+    #print(X)
     rui = set(''.join(X))
     # Generate a dictionary of valid characters
     valid_chars = {x: idx + 1 for idx, x in enumerate(set(''.join(X)))}
@@ -74,7 +71,7 @@ def get_data():
     X = pad_sequences(X, maxlen=maxlen, value=0.)
 
     # Convert labels to 0-1
-    Y = to_categorical(labels, nb_classes=3)
+    Y = to_categorical(labels, nb_classes=2)
 
     volcab_file = "volcab.pkl"
     output = open(volcab_file, 'wb')
@@ -91,7 +88,7 @@ def get_rnn_model(max_len, volcab_size):
     net = tflearn.input_data([None, max_len])
     net = tflearn.embedding(net, input_dim=volcab_size, output_dim=64)
     net = tflearn.lstm(net, 64, dropout=0.8)
-    net = tflearn.fully_connected(net, 3, activation='softmax')
+    net = tflearn.fully_connected(net, 2, activation='softmax')
     net = tflearn.regression(net, optimizer='adam', learning_rate=0.001,
                              loss='categorical_crossentropy')
     model = tflearn.DNN(net, tensorboard_verbose=0)
@@ -109,7 +106,7 @@ def get_cnn_model(max_len, volcab_size):
     network = tf.expand_dims(network, 2)
     network = global_max_pool(network)
     network = dropout(network, 0.5)
-    network = fully_connected(network, 3, activation='softmax')
+    network = fully_connected(network, 2, activation='softmax')
     network = regression(network, optimizer='adam', learning_rate=0.001,
                          loss='categorical_crossentropy', name='target')
     model = tflearn.DNN(network, tensorboard_verbose=0)
@@ -127,7 +124,7 @@ def run():
     print(testY[-1:])
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(trainX, trainY, validation_set=(testX, testY), show_metric=True, batch_size=32)
+    model.fit(trainX, trainY, validation_set=(testX, testY), show_metric=True, batch_size=64)
 
     filename = 'finalized_model.tflearn'
     model.save(filename)
