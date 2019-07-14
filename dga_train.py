@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 import pickle
 
 def get_local_data(tag="train"):
-    data_path = "DGA_Data"
+    data_path = "DGA_sample"
     black_data,white_data = [], []
     for dir_path in os.listdir(data_path):
         if ("black", "white") and tag in dir_path:
@@ -75,7 +75,7 @@ def get_data():
     # Convert labels to 0-1
     Y = to_categorical(labels, nb_classes=2)
 
-    volcab_file = "volcab.pkl"
+    volcab_file = "volcab_dga.pkl"
     output = open(volcab_file, 'wb')
     # Pickle dictionary using protocol 0.
     data = {"valid_chars": valid_chars, "max_len": maxlen, "volcab_size": max_features}
@@ -126,15 +126,15 @@ def run():
     print(testY[-1:])
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(trainX, trainY,n_epoch=200, shuffle=True, validation_set=(testX, testY), show_metric=True, batch_size=64)
+    model.fit(trainX, trainY,n_epoch=10, shuffle=True, validation_set=(testX, testY), show_metric=True, batch_size=64)
 
     filename = 'result/finalized_model.tflearn'
     model.save(filename)
 
     model.load(filename)
     print("Just review 3 sample data test result:")
-    result = model.predict(testX[0:3])
-    print(result)
+    result = model.predict(testX[0:10])
+    print(result,":",trainY[0:10])
 
 
 if __name__ == "__main__":
