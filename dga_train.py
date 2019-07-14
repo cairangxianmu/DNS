@@ -126,7 +126,7 @@ def run():
     print(testY[-1:])
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(trainX, trainY, validation_set=(testX, testY), show_metric=True, batch_size=64)
+    model.fit(trainX, trainY,n_epoch=200, shuffle=True, validation_set=(testX, testY), show_metric=True, batch_size=64)
 
     filename = 'result/finalized_model.tflearn'
     model.save(filename)
