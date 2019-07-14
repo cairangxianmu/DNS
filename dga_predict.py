@@ -21,6 +21,12 @@ def roc(y_test, predictions):
         if p[1] == max(p):
             result.append(1)
     print("predict", result)
+    count = 0
+    for i in range(len(y_true)):
+        if y_true[i] == result[i]:
+            count += 1
+    accuracy = count/len(y_true)
+    print(accuracy)
     fpr, tpr, threshold = roc_curve(y_true, y_score)  ###计算真正率和假正率
     roc_auc = auc(fpr, tpr)  ###计算auc的值
 

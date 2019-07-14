@@ -1,2 +1,2 @@
-model_checkpoint_path: "/home/crxm/DNS/DNS/result/finalized_model.tflearn"
-all_model_checkpoint_paths: "/home/crxm/DNS/DNS/result/finalized_model.tflearn"
+model_checkpoint_path: "/data/cairang/DNS/result/finalized_model.tflearn"
+all_model_checkpoint_paths: "/data/cairang/DNS/result/finalized_model.tflearn"
