@@ -89,11 +89,11 @@ def get_rnn_model(max_len, volcab_size):
     # Network building
     net = tflearn.input_data([None, max_len])
     net = tflearn.embedding(net, input_dim=volcab_size, output_dim=64)
-    net = tflearn.lstm(net, 64, dropout=0.8)
-    net = tflearn.fully_connected(net, 2, activation='softmax')
+    net = tflearn.lstm(net, 64, dropout=0.2)
+    net = tflearn.fully_connected(net, 2, activation='sigmoid')
     net = tflearn.regression(net, optimizer='adam', learning_rate=0.001,
-                             loss='categorical_crossentropy')
-    model = tflearn.DNN(net, tensorboard_verbose=0)
+                             loss='binary_crossentropy')
+    model = tflearn.DNN(net, tensorboard_verbose=3)
     return model
 
 
@@ -108,10 +108,10 @@ def get_cnn_model(max_len, volcab_size):
     network = tf.expand_dims(network, 2)
     network = global_max_pool(network)
     network = dropout(network, 0.5)
-    network = fully_connected(network, 2, activation='softmax')
+    network = fully_connected(network, 2, activation='sigmoid')
     network = regression(network, optimizer='adam', learning_rate=0.001,
-                         loss='categorical_crossentropy', name='target')
-    model = tflearn.DNN(network, tensorboard_verbose=0)
+                         loss='binary_crossentropy', name='target')
+    model = tflearn.DNN(network, tensorboard_verbose=3)
     return model
 
 
@@ -126,7 +126,7 @@ def run():
     print(testY[-1:])
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(trainX, trainY,n_epoch=10, shuffle=True, validation_set=(testX, testY), show_metric=True, batch_size=64)
+    model.fit(trainX, trainY,n_epoch=20, shuffle=True, validation_set=(testX, testY), show_metric=True, batch_size=64)
 
     filename = 'result/finalized_model.tflearn'
     model.save(filename)
