@@ -35,6 +35,7 @@ def roc(y_test, predictions):
 
 def get_predict_data():
     data_path = "xshell_data/"
+    # data_path = "test/"
     black_data, white_data = [], []
     for dir_path in os.listdir(data_path):
         if "black" or "white" in dir_path:

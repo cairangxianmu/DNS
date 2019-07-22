@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, absolute_import
 
-import tldextract
-import tflearn
 import os
-import pickle
-import numpy as np
-from tflearn.data_utils import to_categorical, pad_sequences
 import tensorflow as tf
 import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
@@ -15,7 +10,6 @@ from tflearn.layers.merge_ops import merge
 from tflearn.layers.estimator import regression
 from tflearn.data_utils import to_categorical, pad_sequences
 from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
 import pickle
 import csv
 from common import *
@@ -25,17 +19,20 @@ def normalization(x):
     Min = np.max(x)
     Max = np.min(x)
     x = (x - Min) / (Max - Min)
-    return x
+    return np.round(x, decimals=5)
 
 
 def process(X):
     feature = []
-    for i in X:
+    for index, i in enumerate(X):
+        # , getyuanyin(word[index])
         feature.append([getrootclass(i), getlen(i), getshan(i)])
     feature = np.array(feature)
     feature[:, 1] = normalization(feature[:, 1])
     feature[:, 2] = normalization(feature[:, 2])
+    # feature[:, 3] = normalization(feature[:, 3])
     feature = feature.tolist()
+    print(feature)
 
     return feature
 
@@ -81,9 +78,8 @@ def get_data():
     with open(test_path,"w",encoding="ASCII") as f:
         writer = csv.writer(f)
         for i,pre in enumerate(testX):
-            print(pre)
+            # print(pre)
             writer.writerow([pre]+[str(testY[i])])
-
 
     # Generate a dictionary of valid characters
     valid_chars = {x: idx + 1 for idx, x in enumerate(set(''.join(X)))}
@@ -98,6 +94,7 @@ def get_data():
     feature = process(X)
     for index, i in enumerate(feature):
         i.extend(X[index])
+    # print(feature)
     X = pad_sequences(feature, maxlen=maxlen, dtype='float32', value=0.)
     # Convert labels to 0-1
     Y = to_categorical(labels, nb_classes=2)
@@ -134,7 +131,7 @@ def get_cnn_model(max_len, volcab_size):
     network = merge([branch1, branch2, branch3], mode='concat', axis=1)
     network = tf.expand_dims(network, 2)
     network = global_max_pool(network)
-    network = dropout(network, 0.5)
+    network = dropout(network, 0.2)
     network = fully_connected(network, 2, activation='sigmoid')
     network = regression(network, optimizer='adam', learning_rate=0.001,
                          loss='binary_crossentropy', name='target')
@@ -150,7 +147,7 @@ def run():
 
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(X, Y, n_epoch=30, shuffle=True, validation_set=(X, Y), show_metric=True, batch_size=64)
+    model.fit(X, Y, n_epoch=60, shuffle=True, validation_set=(X, Y), show_metric=True, batch_size=64)
 
     filename = 'result_dga/finalized_model.tflearn'
     model.save(filename)

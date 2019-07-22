@@ -1,8 +1,6 @@
 import numpy as np
-import pandas as pd
 import math
-from hmmlearn import hmm 
-from gensim.models import Word2Vec
+# from gensim.models import Word2Vec
 
 def getshan(domain):
 	tmp_dict = {}
@@ -20,7 +18,7 @@ def getshan(domain):
 
 def getyuanyin(domain):
 	yuan_list = ['a','e','i','o','u']
-	domain = domain.lower()
+	# domain = domain.lower()
 	count_word = 0
 	count_yuan = 0
 	yuan_ratio = 0
@@ -49,43 +47,43 @@ def getrootclass(root):
 def getlen(domain):
 	return len(domain)
 
-def getw2v(domain_list,label_list):
-	stop = ['/','~']
-	w2v_list = []
-	for i in range(0,domain_list.size):
-		tmp = []
-		name = domain_list[i].split('.')[0]
-		for j in range(0,len(name)):
-			tmp.append(name[j])
-		w2v_list.append(tmp)
-
-	model = Word2Vec(w2v_list, min_count = 1)
-	#print (model._vocabulary)
-	model.wv.save_word2vec_format('word2vec.txt',binary=False) 
-	#print model['a']
-	label_vect = []
-	wv_vect = []
-	for i in range(0,domain_list.size):
-		name = domain_list[i].replace('.','')
-		tmp = []
-		vect = []
-		for j in range(0,len(name)):
-			if name[j] in stop:
-				continue
-			tmp.append(model[name[j]])
-			if j >= 9:
-				break
-		if len(tmp) < 10:
-			for k in range(0,10-len(tmp)):
-				tmp.append([0]*100)
-		vect = np.vstack((x for x in tmp))
-		wv_vect.append(vect)
-		label_vect.append(label_list[i])
-		if i ==100000:
-			break
-	wv_vect = np.array(wv_vect)
-	label_vect = np.array(label_vect)
-	return wv_vect,label_vect
+# def getw2v(domain_list,label_list):
+# 	stop = ['/','~']
+# 	w2v_list = []
+# 	for i in range(0,domain_list.size):
+# 		tmp = []
+# 		name = domain_list[i].split('.')[0]
+# 		for j in range(0,len(name)):
+# 			tmp.append(name[j])
+# 		w2v_list.append(tmp)
+#
+# 	model = Word2Vec(w2v_list, min_count = 1)
+# 	#print (model._vocabulary)
+# 	model.wv.save_word2vec_format('word2vec.txt',binary=False)
+# 	#print model['a']
+# 	label_vect = []
+# 	wv_vect = []
+# 	for i in range(0,domain_list.size):
+# 		name = domain_list[i].replace('.','')
+# 		tmp = []
+# 		vect = []
+# 		for j in range(0,len(name)):
+# 			if name[j] in stop:
+# 				continue
+# 			tmp.append(model[name[j]])
+# 			if j >= 9:
+# 				break
+# 		if len(tmp) < 10:
+# 			for k in range(0,10-len(tmp)):
+# 				tmp.append([0]*100)
+# 		vect = np.vstack((x for x in tmp))
+# 		wv_vect.append(vect)
+# 		label_vect.append(label_list[i])
+# 		if i ==100000:
+# 			break
+# 	wv_vect = np.array(wv_vect)
+# 	label_vect = np.array(label_vect)
+# 	return wv_vect,label_vect
 		
 
 		
