@@ -2,14 +2,13 @@
 from dga_train import *
 import csv
 
-def result(predictions):
+def result(predictions,path):
     result = []
     for p in predictions:
         if p[0] > p[1]:
             result.append(0)
         else:
             result.append(1)
-    path = "中央民族大学-68422-DGA-有监督.csv"
     with open(path,"w",encoding="ASCII") as f:
         writer = csv.writer(f)
         for i,pre in enumerate(org):
@@ -17,15 +16,12 @@ def result(predictions):
             writer.writerow([pre]+[str(result[i])])
     print("写入成功",path)
 
-def get_predict_data(data_path):
+def get_predict_data(path):
     data = []
-    for dir_path in os.listdir(data_path):
-        path = data_path + "/" + dir_path
-        print(path)
-        with open(path) as f:
-            for line in f:
-                subdomain = line.replace('\n', '').replace('\t', '').rstrip('.')
-                data.append(subdomain)
+    with open(path) as f:
+        for line in f:
+            subdomain = line.replace('\n', '').replace('\t', '').rstrip('.')
+            data.append(subdomain)
     return data
 
 def get_xshell_data(volcab_file,data_path):
@@ -45,20 +41,27 @@ def get_xshell_data(volcab_file,data_path):
     Y = to_categorical(labels, nb_classes=2)
     return X, Y, maxlen, max_features
 
-
-def run():
-    data_path = "dga_predict/"
+def main(data_path,out_path,filename):
     volcab_file = "volcab_dga.pkl"
-    filename = 'result/finalized_model.tflearn'
 
-    testX, testY, max_len, volcab_size = get_xshell_data(volcab_file,data_path)
+    testX, testY, max_len, volcab_size = get_xshell_data(volcab_file, data_path)
     # print("X len:", len(testX), "Y len:", len(testY))
     # print(testX[-1:])
     # print(testY[-1:])
     model = get_cnn_model(max_len, volcab_size)
     model.load(filename)
     predictions = model.predict(testX)
-    result(predictions)
+    result(predictions,out_path)
+
+def run():
+    dga_path = "dga_predict/dga_sample.csv"
+    dns_path = "dga_predict/dns_sample.csv"
+    dga_out_path = "中央民族大学-68422-DGA-有监督.csv"
+    dns_out_path = "中央民族大学-68422-DNS-有监督.csv"
+    dga_filename = 'result_dga/finalized_model.tflearn'
+    dns_filename = 'result_dns/finalized_model.tflearn'
+    main(dga_path,dga_out_path,dga_filename)
+    main(dns_path,dns_out_path,dns_filename)
     print("程序运行结束")
 
 

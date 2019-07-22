@@ -15,25 +15,46 @@ from tflearn.layers.merge_ops import merge
 from tflearn.layers.estimator import regression
 from tflearn.data_utils import to_categorical, pad_sequences
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 import pickle
+import csv
+from common import *
+
+
+def normalization(x):
+    Min = np.max(x)
+    Max = np.min(x)
+    x = (x - Min) / (Max - Min)
+    return x
+
+
+def process(X):
+    feature = []
+    for i in X:
+        feature.append([getrootclass(i), getlen(i), getshan(i)])
+    feature = np.array(feature)
+    feature[:, 1] = normalization(feature[:, 1])
+    feature[:, 2] = normalization(feature[:, 2])
+    feature = feature.tolist()
+
+    return feature
+
 
 def get_local_data(tag="train"):
     data_path = "DGA_sample"
-    black_data,white_data = [], []
+    black_data, white_data = [], []
     for dir_path in os.listdir(data_path):
         if ("black", "white") and tag in dir_path:
-            path = data_path +"/" + dir_path
+            path = data_path + "/" + dir_path
             print(path)
             with open(path) as f:
                 for line in f:
-                    subdomain = line.replace('\n','').replace('\t','').rstrip('.')
+                    subdomain = line.replace('\n', '').replace('\t', '').rstrip('.')
                     if subdomain is not None:
                         if "white" in path:
                             white_data.append(subdomain)
-                            # print("white",subdomain)
                         elif "black" in path:
                             black_data.append(subdomain)
-                            # print("black",subdomain)
                         else:
                             pass
                             # print ("pass path:", path)
@@ -48,13 +69,22 @@ class LABEL(object):
 
 
 def get_data():
+    test_path = "dga_predict/dga_sample.csv"
     black_x, white_x = get_local_data()
-    black_y, white_y = [LABEL.black] * len(black_x),[LABEL.white] * len(white_x)
+    black_y, white_y = [LABEL.black] * len(black_x), [LABEL.white] * len(white_x)
 
     X = black_x + white_x
     labels = black_y + white_y
-    #print(X)
-    rui = set(''.join(X))
+
+    X, testX, labels, testY = train_test_split(X, labels, test_size=0.2, random_state=42)
+    # rui = set(''.join(X))
+    with open(test_path,"w",encoding="ASCII") as f:
+        writer = csv.writer(f)
+        for i,pre in enumerate(testX):
+            print(pre)
+            writer.writerow([pre]+[str(testY[i])])
+
+
     # Generate a dictionary of valid characters
     valid_chars = {x: idx + 1 for idx, x in enumerate(set(''.join(X)))}
 
@@ -64,14 +94,11 @@ def get_data():
     print("max_len:", maxlen)
     maxlen = min(maxlen, 256)
 
-    # Z = [['a','b','c'],['d']]
-    # valid_a = {a:idx+1 for idx,a in enumerate(set(''.join(['a','b','c','d','e'])))}
-    # z = [[valid_a[y] for y in x] for x in Z]
-    # dddd = valid_a['a']
-    # Convert characters to int and pad
     X = [[valid_chars[y] for y in x] for x in X]
-    X = pad_sequences(X, maxlen=maxlen, value=0.)
-
+    feature = process(X)
+    for index, i in enumerate(feature):
+        i.extend(X[index])
+    X = pad_sequences(feature, maxlen=maxlen, dtype='float32', value=0.)
     # Convert labels to 0-1
     Y = to_categorical(labels, nb_classes=2)
 
@@ -119,22 +146,19 @@ def run():
     X, Y, max_len, volcab_size = get_data()
 
     print("X len:", len(X), "Y len:", len(Y))
-    trainX, testX, trainY, testY = train_test_split(X, Y, test_size=0.2, random_state=42)
-    print(trainX[:1])
-    print(trainY[:1])
-    print(testX[-1:])
-    print(testY[-1:])
+    # trainX, testX, trainY, testY = train_test_split(X, Y, test_size=0.2, random_state=42)
+
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(trainX, trainY,n_epoch=20, shuffle=True, validation_set=(testX, testY), show_metric=True, batch_size=64)
+    model.fit(X, Y, n_epoch=30, shuffle=True, validation_set=(X, Y), show_metric=True, batch_size=64)
 
-    filename = 'result/finalized_model.tflearn'
+    filename = 'result_dga/finalized_model.tflearn'
     model.save(filename)
 
     model.load(filename)
     print("Just review 3 sample data test result:")
-    result = model.predict(testX[0:10])
-    print(result,":",trainY[0:10])
+    # result = model.predict(testX[0:10])
+    # print(result, ":", trainY[0:10])
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from dga_train import *
-import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, auc  ###计算roc和auc
+from sklearn.metrics import roc_curve, auc, f1_score, precision_score, recall_score
 
 def roc(y_test, predictions):
     y_true = []
@@ -26,26 +25,16 @@ def roc(y_test, predictions):
         if y_true[i] == result[i]:
             count += 1
     accuracy = count/len(y_true)
-    print(accuracy)
-    fpr, tpr, threshold = roc_curve(y_true, y_score)  ###计算真正率和假正率
-    roc_auc = auc(fpr, tpr)  ###计算auc的值
 
-    plt.figure()
-    lw = 2
-    plt.figure(figsize=(10, 10))
-    plt.plot(fpr, tpr, color='darkorange',
-             lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)  ###假正率为横坐标，真正率为纵坐标做曲线
-    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic example')
-    plt.legend(loc="lower right")
-    plt.show()
+    fpr, tpr, threshold = roc_curve(y_true, y_score)  #计算真正率和假正率
+    precision = precision_score(y_true, result, average='binary')
+    recall = recall_score(y_true, result, average='binary')
+    f1 = f1_score(y_true, result, average='micro')
+    roc_auc = auc(fpr, tpr)  #计算auc的值
+    print("precision", precision, "recall", recall, "accuracy=", accuracy, "roc_auc=", roc_auc, "F1=", f1)
 
 def get_predict_data():
-    data_path = "xshell_data"
+    data_path = "xshell_data/"
     black_data, white_data = [], []
     for dir_path in os.listdir(data_path):
         if "black" or "white" in dir_path:
@@ -53,6 +42,7 @@ def get_predict_data():
             print(path)
             with open(path) as f:
                 for line in f:
+                    # domain, label = line.split(',')
                     subdomain = line.replace('\n', '').replace('\t', '').rstrip('.')
                     if subdomain is not None:
                         if "white" in path:
@@ -84,7 +74,10 @@ def get_xshell_data():
 
     # Convert characters to int and pad
     X = [[valid_chars[y] if y in valid_chars else 0 for y in x] for x in org]
-    X = pad_sequences(X, maxlen=maxlen, value=0.)
+    feature = process(X)
+    for index, i in enumerate(feature):
+        i.extend(X[index])
+    X = pad_sequences(feature, maxlen=maxlen, value=0.)
 
     # Convert labels to 0-1
     Y = to_categorical(labels, nb_classes=2)
@@ -99,7 +92,7 @@ def run():
 
     model = get_cnn_model(max_len, volcab_size)
 
-    filename = 'result/finalized_model.tflearn'
+    filename = 'result_dga/finalized_model.tflearn'
     model.load(filename)
 
     predictions = model.predict(testX)
