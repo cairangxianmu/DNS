@@ -75,10 +75,17 @@ def get_xshell_data():
 
     # Convert characters to int and pad
     X = [[valid_chars[y] if y in valid_chars else 0 for y in x] for x in org]
-    feature = process(X)
+    feature = process(X,org)
+
+    # for i in range(len(X)):
+    #     for j in range(len(X[i])):
+    #         X[i][j] = X[i][j]/max_features
+            # print(X[i][j])
+
     for index, i in enumerate(feature):
         i.extend(X[index])
-    X = pad_sequences(feature, maxlen=maxlen, value=0.)
+    X = pad_sequences(X, dtype='float32', maxlen=maxlen, value=0.)
+    print(X[0])
 
     # Convert labels to 0-1
     Y = to_categorical(labels, nb_classes=2)

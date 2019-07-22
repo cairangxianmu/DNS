@@ -19,20 +19,20 @@ def normalization(x):
     Min = np.max(x)
     Max = np.min(x)
     x = (x - Min) / (Max - Min)
-    return np.round(x, decimals=5)
+    return np.round(x, decimals=8)
 
 
-def process(X):
+def process(X, word):
     feature = []
     for index, i in enumerate(X):
-        # , getyuanyin(word[index])
-        feature.append([getrootclass(i), getlen(i), getshan(i)])
+        #
+        feature.append([getrootclass(i), getlen(i), getshan(i), getyuanyin(word[index])])
     feature = np.array(feature)
     feature[:, 1] = normalization(feature[:, 1])
     feature[:, 2] = normalization(feature[:, 2])
-    # feature[:, 3] = normalization(feature[:, 3])
+    feature[:, 3] = normalization(feature[:, 3])
     feature = feature.tolist()
-    print(feature)
+    # print(feature)
 
     return feature
 
@@ -75,6 +75,7 @@ def get_data():
 
     X, testX, labels, testY = train_test_split(X, labels, test_size=0.2, random_state=42)
     # rui = set(''.join(X))
+    word = X
     with open(test_path,"w",encoding="ASCII") as f:
         writer = csv.writer(f)
         for i,pre in enumerate(testX):
@@ -91,7 +92,13 @@ def get_data():
     maxlen = min(maxlen, 256)
 
     X = [[valid_chars[y] for y in x] for x in X]
-    feature = process(X)
+    feature = process(X, word)
+    # print(X[0])
+    # for i in range(len(X)):
+    #     for j in range(len(X[i])):
+    #         X[i][j] = X[i][j]/max_features
+    #
+    # print(X[0])
     for index, i in enumerate(feature):
         i.extend(X[index])
     # print(feature)
@@ -147,7 +154,7 @@ def run():
 
 
     model = get_cnn_model(max_len, volcab_size)
-    model.fit(X, Y, n_epoch=60, shuffle=True, validation_set=(X, Y), show_metric=True, batch_size=64)
+    model.fit(X, Y, n_epoch=10, shuffle=True, validation_set=(X, Y), show_metric=True, batch_size=8)
 
     filename = 'result_dga/finalized_model.tflearn'
     model.save(filename)
